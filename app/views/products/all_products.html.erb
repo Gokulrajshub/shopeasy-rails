@@ -1,0 +1,214 @@
+<div class="page">
+  <nav class="d-flex align-items-center justify-content-between px-4 py-3 bg-dark">
+    <div class="text-white fs-5 fw-medium">ShopEasy — Admin Panel</div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="text-white-50 small"><%= link_to "← Dashboard", admin_dashboard_path, class: "text-white" %></span>
+    </div>
+  </nav>
+  <div class="row">
+    <div class="col-md-12 p-3 d-flex">
+      <div class="text-dark fw-bold fs-5"> All Products (<%= @products.count %>)</div>
+      <div class="ms-auto"><%= link_to "Add New Product", add_new_product_path, class: "btn btn-danger " %></div>
+    </div>
+  </div>
+  <div class="table-container">
+  <table class="table table-hover align-middle table-border">
+    <thead>
+    </thead>
+    <tbody>
+      <tr>
+        <th class="headers">Product</th>
+        <th class="headers">Category</th>
+        <th class="headers">Price</th>
+        <th class="headers">Stock</th>
+        <th class="headers">Actions</th>
+      </tr>
+      <% @products.each do |product| %>
+        <tr>
+          <td>
+            <% if product.image.attached? %>
+              <%= image_tag product.image, size: "30x30" %>
+            <% else %>
+              <span class="product-details"><%= "" %></span>
+            <% end %>
+            <span class="product-details"><%= " " %><%= product.name %></span>
+          </td>
+          <td>
+            <div class="product-details badge <% if product.category == 'Electronics' %>bg-warning<% elsif product.category == 'Clothing' %>bg-danger<% elsif product.category == 'Footwear' %>bg-success<% elsif product.category == 'Accessories' %>bg-info<% elsif product.category == 'Books' %>bg-light<% else %>bg-secondary<% end %>"><%= product.category %></div>
+          </td>
+          <td><div class="product-details">₹ <%= product.price %></div></td>
+          <td><div <% if product.stock <= 0 %>class="badge bg-danger product-details"<% else %>class="badge bg-success product-details"<% end %>><%= product.stock %></div></td>
+          <td>
+            <div class="d-flex gap-3"> 
+              <a href="#" data-bs-toggle="modal" data-bs-target="#editModal<%= product.id %>">
+              <i class="fa-solid fa-pen-to-square text-primary"></i></a>
+              <a href="#" data-bs-toggle="modal" data-bs-target="#viewModal<%= product.id %> "> 
+                <i class="fa-solid fa-eye text-success"></i>
+              </a>
+              <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModal<%= product.id %> "> 
+                <i class="fa-solid fa-trash text-danger"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% @products.each do |product| %>
+    <div class="modal fade" id="editModal<%= product.id %>" tabindex="-1" aria-labelledby="editModalLabel<%= product.id %>" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="editModalLabel<%= product.id %>">Edit Product</h5>
+            <button type="button" class="btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <%= form_with model: product, url: update_product_path(product),method: "patch", local: true, html: { multipart: true} do |form|%>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label fw-medium small">Product Name</label>
+                <%= form.text_field :name, value: product.name, class: "form-control" %>
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-medium small">Price (₹)</label>
+                  <%= form.number_field :price, value: product.price, class: "form-control" %>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-medium small">Stock</label>
+                  <%= form.number_field :stock, value: product.stock, class: "form-control" %>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-medium small">Category</label>
+                <%= form.select :category, Product::CATEGORY, { selected: product.category }, class: "form-select" %>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-medium small">Description</label>
+                <%= form.text_area :description, value: product.description, class: "form-control", rows: 3 %>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-medium small">Product Image</label>
+                <% if product.image.attached? %>
+                  <%= image_tag product.image, style: "width:60px; height:60px; object-fit:cover; border-radius:8px;" %>
+                <% end %>
+                <%= form.file_field :image, class: "form-control mt-1", accept: "image/*", id: "image_#{product.id}" %>
+                
+                 <span onclick="clearImage('<%= product.id %>')" style="cursor:pointer; color:#E53935;">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span style="padding-left: 4px;">Clear</span>
+                </span>
+                
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+              <%= form.submit "Save Changes", class: "btn btn-danger btn-sm" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="viewModal<%= product.id %>" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title fw-medium">Product Details</h5>
+            <button type="button" class="btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <div>
+             <% if product.image.attached? %>
+              <%= image_tag product.image, style: "width:150px; height:150px; object-fit:cover; cursor:pointer; border-radius:8px;", onclick: "document.getElementById('fullImg#{product.id}').classList.toggle('d-none')" %>
+              <div id="fullImg<%= product.id %>" class="d-none" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; align-items:center; justify-content:center;" onclick="this.classList.add('d-none')">
+                <%= image_tag product.image, style: "max-width:200%; max-height:200%;" %>
+              </div>
+              <%else%>
+                <div style="width:150px; height:150px; border-radius:12px; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto; gap:8px;">
+                  <i class="fa-solid fa-image" style="font-size:32px; color:#bbb; animation: pulse 1.5s ease-in-out infinite;"></i>
+                  <span class="text-muted small" style="animation: pulse 1.5s ease-in-out infinite;">No Image</span>
+                </div>  
+              <% end%>
+              <p><b>Name</b> <%= product.name %></p>
+              <p><b>Price</b> <%= product.price %></p>
+              <p><b>Stock</b> <%= product.stock %></p>
+              <p><b>Category</b> <%= product.category %></p>
+              <p><b>Description</b> <%= product.description %></p>
+            </div>
+            <!-- Name, Price, Stock, Category, Description -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="deleteModal<%= product.id %>" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure want to delete <%= product.name %> ?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <%= button_to "Delete", "/products/#{product.id}", method: :delete, class: "btn btn-danger" %>
+      </div>
+    </div>
+  </div>
+</div>
+  <% end %>
+  </div>
+</div>
+<style>
+ 
+.table-border th {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  background: #f9f9f9;
+}
+
+.table-border td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table-border tr:last-child td {
+  border-bottom: none;
+}
+
+.table-container{
+  border: 0.5px solid #e0e0e0;
+  border-radius: 20px;
+  margin: 0 20px 20px 20px;
+  overflow: hidden;
+}
+
+.page{
+  background: #f5f5f5
+}
+
+.headers{
+  font-weight: 400;
+  font-size: 14px;
+  color: #666666;
+}
+
+.product-details{
+  font-weight: 400;
+  font-size: 14px;
+}
+#no_image{
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+</style>
+<script>
+  function clearImage(productId){
+    console.log('iddd--', productId);
+    document.getElementById("image_"+productId).value = "";
+  }
+</script>

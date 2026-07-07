@@ -1,0 +1,62 @@
+<nav class="d-flex align-items-center justify-content-between px-4 py-3 bg-dark">
+  <div class="text-white fs-5 fw-medium">ShopEasy — Admin Panel</div>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-white-50 small"><%= link_to "← Back to Dashboard", admin_dashboard_path, class: "text-white" %></span>
+  </div>
+</nav>
+<body class="bg-body-tertiary">
+<div class="container">
+	<div class="row justify-content-center mt-4">
+		<div class="col-md-8 p-0 bg-white">
+			<div class="card text-white p-2 mb-3 bg-danger">
+				<div class="card-title">Add New Product</div>
+			</div>
+			<div class="container">
+				<%= form_with model: @product, url: create_product_path, local: true, html: {multipart: true} do |form| %>
+					<div class="row g-3 mb-3">
+						<div class="col-md-6">
+							<%= form.label :name, "Product Name", class: "form-label fw-medium small" %>
+							<%= form.text_field :name, class: "form-control", placeholder: "e.g. Nike Air Max" %>
+						</div>
+						<div class="col-md-6">
+							<%= form.label :category, class: "form-label fw-medium small" %>
+							<%= form.select :category, Product::CATEGORY, { include_blank: "Select Category" }, class: "form-select" %>
+						</div>
+					</div>
+					<div class="row g-3 mb-3">
+						<div class="col-md-6">
+							<%= form.label :price, "Price in ₹", class: 'form-label' %>
+							<%= form.number_field :price, step: 0.10, class: "form-control" %>
+						</div>
+						<div class="col-md-6">
+							<%= form.label :stock, "Stock Quantity", class: 'form-label' %>
+							<%= form.number_field :stock, class: "form-control" %>
+						</div>
+					</div>
+					<div class="row g-3 mb-3">
+						<div class="col-md-12">
+							<%= form.label :description, "Description", class: 'form-label' %>
+							<%= form.text_area :description, class: "form-control" %>
+						</div>
+					</div>
+					<div class="row g-3 mb-3">
+						<div class="col-md-6">
+							<%= form.label :image, "Product Image", class: 'form-label' %>
+							<%= form.file_field :image, class: "form-control" %>
+						</div>
+					</div>
+					<div class="row g-3 mb-3">
+						<div class="col-md-12">
+							<div class="d-flex gap-2 justify-content-end">
+								<%= link_to "Cancel", admin_dashboard_path, class: "btn btn-outline-secondary" %>
+								<%= form.submit "Add Product", class: "btn btn-danger" %>
+							</div>
+						</div>
+					</div>
+				<% end %>
+			</div>
+
+		</div>
+	</div>
+</div>
+</div>

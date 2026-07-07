@@ -1,0 +1,45 @@
+<div class="signup-container min-vh-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #FF7043, #E53935);">
+	<div class="card shadow border-0 rounded-4 my-4" style="width: 100%; max-width: 420px;">
+    <div class="card-body p-5">
+      <div class="text-center">
+        <h3 class="fw-bold text-danger">ShopEasy</h3>
+        <p class="text-muted">Create your account to get started</p>
+      </div>
+
+	<%= form_with model: @user, url: signup_path, local: true, class: 'signup-form' do |form| %>
+		<%# To show validation Errors %>
+		<% if @user.errors.any? %>
+      <div id="error_explanation" style="color: red;">
+        <ul>
+          <% @user.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="field mb-3">
+    	<%= form.label :name, class: "form-label small fw-medium"%><br>
+    	<%= form.text_field :name, class: "form-control form-control-sm", placeholder: 'Enter your name', required: true %>
+    </div>
+    <div class="field mb-3">
+    	<%= form.label :email, class: "form-label small fw-medium"%><br>
+    	<%= form.text_field :email, class: "form-control form-control-sm", placeholder: 'email@example.com', required: true %>
+    </div>
+    <div class="field mb-3">
+    	<%= form.label :password, class: "form-label small fw-medium"%><br>
+    	<%= form.text_field :password, class: "form-control form-control-sm", placeholder: 'Minimum 6 characters', required: true %>
+    </div>
+    <div class="field mb-3">
+    	<%= form.label :password_confirmation, class: "form-label small fw-medium"%><br>
+    	<%= form.text_field :password_confirmation, class: "form-control form-control-sm", placeholder: 'Repeat password', required: true %>
+    </div>
+    <div class="actions">
+    	<%= form.submit "Sign Up", class: 'btn-submit btn btn-danger w-100'%>
+    </div>
+	<% end %>
+  <div class="text-center mt-3">
+    <p>Already have an account? <%= link_to "Login here", login_path, class: "fw-bold" %></p>
+  </div>
+  </div>
+</div>

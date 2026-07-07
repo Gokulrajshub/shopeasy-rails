@@ -1,0 +1,87 @@
+<nav class="d-flex align-items-center justify-content-between px-4 py-2 bg-danger">
+  <div class="text-white fs-4 fw-medium">ShopEasy</div>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-white">Hi, <%= current_user.name %></span>
+    <%= link_to cart_path, class: "btn btn-outline-light btn-sm" do %>
+      <i class="fa-solid fa-cart-shopping"></i> Cart
+    <% end %>
+    <%= link_to orders_path, class: "btn btn-outline-light btn-sm" do %>
+      <i class="fa-solid fa-box"></i> Orders
+    <% end %>
+    <%= button_to "Logout", logout_path, method: :delete, class: "btn btn-outline-light btn-sm" %>
+  </div>
+</nav>
+<div class="d-flex gap-2 mb-3 flex-wrap justify-content-center page pt-2">
+  <%= link_to "All", user_home_path, class: "btn btn-sm #{'btn-danger' if params[:category].blank?} #{'btn-outline-secondary' if params[:category].present?}" %>
+  
+  <% Product::CATEGORY.each do |cat| %>
+    <%= link_to cat, user_home_path(category: cat), class: "btn btn-sm #{'btn-danger' if params[:category] == cat} #{'btn-outline-secondary background-none' if params[:category] != cat}" %>
+  <% end %>
+</div>
+<div class="row row-cols-2 row-cols-md-4 g-3 p-4 page">
+  <% @products.each do |product| %>
+    <div class="col">
+      <div class="card h-100 shadow" data-bs-toggle="modal" data-bs-target="#productModal<%= product.id %>" style="cursor: pointer;">
+        <div class="align-items-center justify-content-center d-flex p-2">
+        <% if product.image.attached? %>
+          <%= image_tag product.image, class: "card-img-top ", style: "width: 40%; height: 100px; border-radius: 10px " %>
+        <% else %>
+          <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
+            <span class="text-muted">No Image</span>
+          </div>
+        <% end %>
+        </div>
+        <div class="p-2 fw-bold"><%= product.name%></div>
+        <div class="p-2">₹<%= product.price%></div>
+        <div class="p-2">
+          <button class="btn btn-danger btn-sm w-100 mt-2">
+            <i class="fa-solid fa-cart-plus"></i> Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<% @products.each do |product| %>
+  <div class="modal fade" id="productModal<%= product.id %>" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-medium"><%= product.name %></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <div>
+            <% if product.image.attached? %>
+              <%= image_tag product.image, style: "width:150px; height:150px; object-fit:cover; cursor:pointer; border-radius:8px;", onclick: "document.getElementById('fullImg#{product.id}').classList.toggle('d-none')" %>
+              <div id="fullImg<%= product.id %>" class="d-none" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; align-items:center; justify-content:center;" onclick="this.classList.add('d-none')">
+                <%= image_tag product.image, style: "max-width:200%; max-height:200%;" %>
+              </div>
+            <%else%>
+              <div style="width:150px; height:150px; border-radius:12px; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto; gap:8px;">
+                <i class="fa-solid fa-image" style="font-size:32px; color:#bbb; animation: pulse 1.5s ease-in-out infinite;"></i>
+                <span class="text-muted small" style="animation: pulse 1.5s ease-in-out infinite;">No Image</span>
+              </div>  
+            <% end%>
+            <h5 class="fw-medium"><%= product.name %></h5>
+            <p class="text-danger fw-medium fs-5">₹<%= product.price %></p>
+            <p class="text-muted small">Stock: <%= product.stock %> available</p>
+            <p class="small"><%= product.description %></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <%= button_to add_to_cart_path(product.id), method: :post, class: "btn btn-danger btn-sm w-100 mt-2" do %>
+            <i class="fa-solid fa-cart-plus"></i> Add to Cart
+          <% end %>
+        </div>  
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  .page{
+  background: #f5f5f5
+}
+</style>

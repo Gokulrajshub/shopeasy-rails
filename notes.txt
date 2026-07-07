@@ -1,0 +1,8 @@
+models created:
+rails g model User name:string email:string password_digest:string
+rails g model Product name:string price:decimal description:text stock:integer
+rails g model Cart user:references
+rails g model CartItem cart:references product:references quantity:integer
+rails g model Order user:references total_amount:decimal status:string
+rails g model OrderItem order:references product:references quantity:integer price:decimal
+rails db:migrate

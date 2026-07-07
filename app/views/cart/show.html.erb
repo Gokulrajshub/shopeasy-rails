@@ -1,0 +1,170 @@
+<nav class="d-flex align-items-center justify-content-between px-4 py-2 bg-danger">
+  <div class="text-white fs-4 fw-medium">ShopEasy</div>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-white">Hi, <%= current_user.name %></span>
+    <%= button_to "Logout", logout_path, method: :delete, class: "btn btn-outline-light btn-sm" %>
+  </div>
+</nav>
+<div class="cart-page">
+<div class="container page pt-2">
+  <div class="row">
+    <div class="col-7">
+        <%= link_to user_home_path, class: "text-decoration-none" do %>
+          <i class="fa-solid fa-arrow-left"></i> Continue Shopping
+        <% end %>
+      <h4 class="fw-medium">My Cart (<%= @cart_items.count %> items)</h4> 
+      <% if @cart_items.empty? %>
+        <p>Your cart is empty.</p>
+      <% else %> 
+        <% @cart_items.each do |cart_item| %>
+        <div class="container border d-flex mb-2 bg-white rounded-4 cart-item">
+          <div class="m-2 col-2">
+            <img src="<%= cart_item.product.image.attached? ? url_for(cart_item.product.image) : '' %>" class="img-fluid" style="width:70px; height:70px; border-radius:5px">
+          </div>
+          <div class="col-6 pt-2">
+            <div><%= cart_item.product.name %></div>
+            <div class="text-danger">₹<%= cart_item.product.price %></div>
+            <div style="font-size:12px; color:#666; display:none;">Qty: <%= cart_item.quantity%> </div>
+            <div id="stock-alert-<%= cart_item.product.id %>" class="d-none text-danger mt-1" style="font-size: 11px;">Only <%= cart_item.product.stock %> items available!</div>
+          </div>
+          <div class="col-2 d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" 
+                    onclick="decreaseQty(<%= cart_item.product.id %>, <%= cart_item.quantity %>)">−</button>
+            <span id="qty-<%= cart_item.product.id %>" 
+                  data-price="<%= cart_item.product.price %>"
+                  data-name="<%= cart_item.product.name %>"
+                  data-stock="<%= cart_item.product.stock %>"
+                  data-item-id="<%= cart_item.id %>">
+              <%= cart_item.quantity %>
+            </span>
+            <button class="btn btn-outline-secondary btn-sm" id="plus-<%= cart_item.product.id %>"
+                    onclick="increaseQty(<%= cart_item.product.id %>)">+</button>
+          </div>
+          <div class="col-2 d-flex align-items-center justify-content-center">
+            <%= button_to remove_from_cart_path(cart_item.product.id), method: :delete, class: "border-0 bg-transparent" do %>
+                <i class="fa-solid fa-trash text-danger"></i>
+            <% end %>
+          </div>
+        </div>  
+        <% end %>
+      <% end %>
+    </div>
+    <div class="col-5 order_summary container border rounded-4 bg-white p-3">
+      <div><h5 class="fw-medium">Order Summary</h5></div>
+      <% @cart_items.each do |cart_item| %>
+        <div id="summary-<%= cart_item.product_id %>" class="d-flex justify-content-between mb-1">
+          <span class="summary-qty"><%= cart_item.product.name %> x<%= cart_item.quantity %></span>
+          <span class="summary-price">₹<%= cart_item.product.price * cart_item.quantity %></span>
+      </div>
+    <% end %>
+
+    <hr>
+    <div class="d-flex justify-content-between fw-medium">
+      <span>Total</span>
+      <span id="cart-total">₹<%= @cart_items.sum { |item| item.product.price * item.quantity } %></span>
+    </div>
+
+    <%= form_with url: checkout_path, method: :post, local: true, id: "checkout-form" do |f| %>
+      <div id="qty-inputs"></div>
+      <button type="submit" onclick="prepareCheckout()" class="btn btn-danger w-100 mt-3">
+        Proceed to Checkout →
+      </button>
+    <% end %>
+  </div>
+  </div>
+</div>
+</div>
+<style>
+  .page{
+  background: #f5f5f5
+}
+  .order_summary{
+   position: sticky;
+     }
+.cart-page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+</style>
+<script>
+  function increaseQty(productId) {
+    const quantityElement = document.getElementById(`qty-${productId}`);
+    const currentQty = parseInt(quantityElement.textContent);
+    const stock = parseInt(quantityElement.dataset.stock);
+    const plusBtn = document.getElementById(`plus-${productId}`);
+    const alertEl = document.getElementById(`stock-alert-${productId}`);
+
+    if (currentQty >= stock) {
+      plusBtn.disabled = true;
+      alertEl.classList.remove('d-none');
+      return;
+    }
+
+    alertEl.classList.add('d-none');
+    plusBtn.disabled = false;
+    quantityElement.textContent = currentQty + 1;
+    updateTotal();
+  }
+
+  function decreaseQty(productId) {
+    const quantityElement = document.getElementById(`qty-${productId}`);
+    const currentQty = parseInt(quantityElement.textContent);
+    const plusBtn = document.getElementById(`plus-${productId}`);
+    const alertEl = document.getElementById(`stock-alert-${productId}`);
+
+    if (currentQty > 1) {
+      quantityElement.textContent = currentQty - 1;
+      plusBtn.disabled = false;
+      alertEl.classList.add('d-none');
+    } else {
+      quantityElement.closest('.container.border').style.display = 'none';
+    }
+    updateTotal();
+  }
+
+  function updateTotal() {
+    let total = 0;
+    
+    document.querySelectorAll('[id^="qty-"]').forEach(el => {
+      const productId = el.id.replace('qty-', '');
+      const qty = parseInt(el.textContent);
+      const price = parseFloat(el.dataset.price);
+      const productName = el.dataset.name;
+      const row = el.closest('.cart-item');
+      
+      if (row && row.style.display !== 'none') {
+        total += qty * price;
+        
+        // Order Summary row update பண்ணு
+        const summaryRow = document.getElementById(`summary-${productId}`);
+        if (summaryRow) {
+          summaryRow.querySelector('.summary-qty').textContent = `${productName} x${qty}`;
+          summaryRow.querySelector('.summary-price').textContent = `₹${qty * price}`;
+        }
+      } else {
+        // Hidden item - summary-ல hide பண்ணு
+        const summaryRow = document.getElementById(`summary-${productId}`);
+        if (summaryRow) summaryRow.style.display = 'none';
+      }
+    });
+    
+    document.getElementById('cart-total').textContent = '₹' + total;
+  }
+
+  function prepareCheckout() {
+    const form = document.getElementById('qty-inputs');
+    form.innerHTML = '';
+    document.querySelectorAll('[id^="qty-"]').forEach(el => {
+      const productId = el.id.replace('qty-', '');
+      const qty = parseInt(el.textContent);
+      const row = el.closest('.cart-item');
+      if (row && row.style.display !== 'none' && qty > 0) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `quantities[${productId}]`;
+        input.value = qty;
+        form.appendChild(input);
+      }
+    });
+  }
+</script>
