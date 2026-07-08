@@ -84,6 +84,9 @@ Then login at `http://localhost:3000/login` with above credentials.
 
 ## Project Structure
 
+## Project Structure
+
+```
 app/
 ├── controllers/
 │   ├── admin_controller.rb      # Admin dashboard & orders
@@ -98,10 +101,11 @@ app/
 │   ├── cart.rb / cart_item.rb   # Cart logic
 │   └── order.rb / order_item.rb # Order logic
 └── views/
-├── admin/                   # Admin pages
-├── products/                # Product pages
-├── cart/                    # Cart page
-└── orders/                  # Order pages
+    ├── admin/                   # Admin pages
+    ├── products/                # Product pages
+    ├── cart/                    # Cart page
+    └── orders/                  # Order pages
+```
 
 ## Security
 
